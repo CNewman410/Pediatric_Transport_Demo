@@ -1,0 +1,32 @@
+const assert = require('node:assert/strict');
+const M = require('../calculator.js');
+function near(actual,expected){ assert.ok(Math.abs(actual-expected)<1e-9*Math.max(1,Math.abs(expected)),`${actual} should equal ${expected}`); }
+function test(name,values,flow,hours){ const c=M.calculate(values);near(c.flow,flow);near(c.hours,hours);console.log('✓ '+name); }
+const base={method:'dose',concentrationUnit:'mg/mL',concentration:'2',weightBased:true,weight:'20',rateUnit:'mcg/kg/min',doseRate:'2',vtbi:'25'};
+test('weight-based mcg/kg/min, mg/mL',base,1.2,25/1.2);
+test('weight-based mg/kg/min, mg/mL',{...base,rateUnit:'mg/kg/min',doseRate:'0.002'},1.2,25/1.2);
+test('weight-based mcg/kg/hr',{...base,rateUnit:'mcg/kg/hr',doseRate:'120'},1.2,25/1.2);
+test('weight-based mg/kg/hr',{...base,rateUnit:'mg/kg/hr',doseRate:'0.12'},1.2,25/1.2);
+test('mcg/mL concentration',{...base,concentrationUnit:'mcg/mL',concentration:'2000'},1.2,25/1.2);
+test('g/mL concentration',{...base,concentrationUnit:'g/mL',concentration:'0.002'},1.2,25/1.2);
+test('ng/mL concentration',{...base,concentrationUnit:'ng/mL',concentration:'2000000'},1.2,25/1.2);
+test('not weight-based mcg/min',{...base,weightBased:false,weight:'',rateUnit:'mcg/min',doseRate:'40'},1.2,25/1.2);
+test('not weight-based mg/min',{...base,weightBased:false,weight:'',rateUnit:'mg/min',doseRate:'0.04'},1.2,25/1.2);
+test('not weight-based mcg/hr',{...base,weightBased:false,weight:'',rateUnit:'mcg/hr',doseRate:'2400'},1.2,25/1.2);
+test('not weight-based mg/hr',{...base,weightBased:false,weight:'',rateUnit:'mg/hr',doseRate:'2.4'},1.2,25/1.2);
+test('mL mode',{method:'ml',mlRate:'125',vtbi:'1000'},125,8);
+assert.equal(M.calculate({method:'ml',mlRate:'125',vtbi:'1000'}).duration,'8 hr 00 min');
+assert.equal(M.calculate(base).duration,'20 hr 50 min');
+assert.equal(M.duration(0.5),'30 min 00 sec');
+assert.equal(M.duration(1/3600),'0 min 01 sec');
+assert.throws(()=>M.calculate({...base,concentration:'0'}),/greater than zero/i);
+assert.throws(()=>M.calculate({...base,vtbi:'0'}),/greater than zero/i);
+assert.throws(()=>M.calculate({...base,weight:''}),/patient weight/i);
+assert.throws(()=>M.calculate({...base,weightBased:false}),/do not match/i);
+assert.throws(()=>M.calculate({...base,doseRate:'abc'}),/positive number/i);
+assert.throws(()=>M.calculate({...base,rateUnit:'units\/kg\/min'}),/Choose dose-rate units/i);
+assert.throws(()=>M.calculate({...base,concentration:'NaN'}),/positive number/i);
+assert.throws(()=>M.calculate({...base,concentration:'Infinity'}),/positive number/i);
+assert.throws(()=>M.calculate({...base,concentration:'0.00000000000000001'}),/range/i);
+assert.throws(()=>M.calculate({...base,concentration:'100000000000'}),/demo range/i);
+console.log('\nAll numeric tests passed.');

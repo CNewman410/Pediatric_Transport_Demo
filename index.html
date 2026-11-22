@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#132642">
+  <meta name="description" content="Unvalidated pump-inspired arithmetic prototype for the Pediatric Transport protocol website Option 2.">
+  <title>Infusion Calculator · Option 2 Prototype</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="calculator.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div class="accent" aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <button class="site-brand" id="home" type="button" aria-label="Start new calculation">
+        <span class="cross" aria-hidden="true">+</span>
+        <span class="site-brand-text"><strong>Pediatric Transport</strong><small>General infusion calculator · Option 2</small></span>
+      </button>
+      <span class="header-meta"><span class="green-dot"></span> V3 DEMO</span>
+    </div>
+  </header>
+  <main class="page">
+    <aside class="safety" role="note"><strong>PROTOTYPE — NOT FOR PATIENT CARE</strong><span>Unvalidated arithmetic and interface demonstration. Do not use to program an infusion pump or administer medication.</span></aside>
+    <section class="pump" aria-labelledby="pump-title">
+      <div class="pump-top">
+        <div class="pump-top-row"><span>CONTINUOUS INFUSION</span><span id="step-indicator">START</span></div>
+        <div class="pump-heading"><h1 id="pump-title">New infusion</h1><span class="chip">Option 2</span></div>
+        <div class="progress" aria-hidden="true"><div id="progress-fill"></div></div>
+      </div>
+      <div id="screen" class="screen" aria-live="polite" aria-atomic="true"></div>
+      <nav class="pump-nav" id="nav" aria-label="Calculator navigation"></nav>
+    </section>
+    <p class="footnote">No medication library · No dose-range checking · No patient information stored</p>
+    <details class="about"><summary>About this demonstration</summary><p>This is a mobile-friendly, Sapphire-inspired sequence for demonstrating general arithmetic. It is not affiliated with the pump manufacturer. All medication formulas, UI requirements, and clinical safeguards require independent Hopkins review before any clinical deployment. A drug-specific medication library belongs to Option 3.</p></details>
+  </main>
+  <footer class="footer">Pediatric Transport · General calculator concept · Version 3</footer>
+</body>
+</html>
