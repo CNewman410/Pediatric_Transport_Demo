@@ -4,36 +4,32 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#10233d">
-  <meta name="description" content="Version 5 general medication calculation concept. Arithmetic-only prototype — not for patient care.">
-  <title>General Dose Calculator · Option 2 Demo</title>
+  <meta name="description" content="General medication and infusion calculator concept. Arithmetic-only prototype — not for patient care.">
+  <title>Pediatric Transport Calculator · Option 2 Demo</title>
   <link rel="stylesheet" href="styles.css">
   <script src="calculator.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
-  <header class="site-header">
-    <div class="site-inner">
-      <button id="home" class="brand" type="button" aria-label="Back to calculation menu">
-        <span class="brand-mark" aria-hidden="true">+</span>
-        <span><strong>Pediatric Transport</strong><small>General calculator · Option 2</small></span>
-      </button>
-      <span class="version"><span class="status-dot" aria-hidden="true"></span> V5 DEMO</span>
-    </div>
-  </header>
-  <main class="container">
-    <aside class="safety" role="note"><strong>PROTOTYPE · NOT FOR PATIENT CARE</strong><span>Unvalidated arithmetic demo. Do not use for medication administration, clinical dose checks, or infusion pump programming.</span></aside>
+  <main class="container compact-page">
+    <aside class="safety" role="note">
+      <strong>PROTOTYPE · NOT FOR PATIENT CARE</strong>
+      <span>Arithmetic demo only. No dose recommendations, no clinical safety checks, and no patient data storage.</span>
+    </aside>
+
     <section class="shell" aria-labelledby="title">
       <div class="shell-head">
-        <div class="head-top"><span id="eyebrow">GENERAL CALCULATIONS</span><span id="step-indicator">CHOOSE A TOOL</span></div>
-        <h1 id="title">What would you like to calculate?</h1>
+        <div class="head-top">
+          <button id="home" class="mini-home" type="button" aria-label="Back to calculator menu">HOME</button>
+          <span id="eyebrow">PEDIATRIC TRANSPORT CALCULATOR</span>
+          <span id="step-indicator">SELECT CALCULATOR</span>
+        </div>
+        <h1 id="title">Choose a calculator</h1>
         <div class="progress" aria-hidden="true"><div id="progress-fill"></div></div>
       </div>
       <div id="screen" class="screen" aria-live="polite" aria-atomic="true"></div>
       <nav id="navigation" class="navigation" aria-label="Calculator navigation"></nav>
     </section>
-    <p class="bottom-note">No medication library · No dose recommendations · No data saved or transmitted</p>
-    <details class="about"><summary>About this demonstration</summary><p>This is a generic calculator concept for review of the proposed Option 2 website. The interface is inspired by simple dose-volume calculators and a pump-style infusion workflow. It is not affiliated with any pump manufacturer. A drug-specific calculator and clinical rules belong to a separate Option 3 scope.</p><p>All calculation requirements, units, edge cases, rounding, clinical safeguards, and deployment must be reviewed and independently validated by authorized clinical and IT teams before any clinical use.</p></details>
   </main>
-  <footer>General Medication &amp; Infusion Calculator · Concept Version 5</footer>
 </body>
 </html>
