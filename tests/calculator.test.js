@@ -26,13 +26,13 @@ test('weight-based flow includes drops: 200mL over 2hr, 20gtt/mL = 33gtt/min',()
  const x=calc('flow',{...fluid,weightBased:true,patientWeight:'20',volume:'10',timeValue:'2',includeDrops:true,dropFactor:'20'});
  assert.equal(x.details.at(-1).value,'33 gtt/min');
 });
-const inf={ mode:'infusion',infusionMethod:'dose',availableDose:'100',availableUnit:'mg',stockVolume:'50',weightBased:true,patientWeight:'20',doseRate:'2',rateUnit:'mcg/kg/min',vtbi:'25' };
+const inf={ mode:'infusion',infusionKind:'pump',infusionMethod:'dose',availableDose:'100',availableUnit:'mg',stockVolume:'50',weightBased:true,patientWeight:'20',doseRate:'2',rateUnit:'mcg/kg/min',vtbi:'25' };
 test('pump 100mg/50mL, 2mcg/kg/min, 20kg = 1.2mL/hr',()=>approx(M.calculate(inf).primaryValue,1.2));
 test('pump duration',()=>assert.equal(M.calculate(inf).details.at(-1).value,'20 hr 50 min'));
 test('pump non-weight-based 2mg/hr at 40mg/5mL = .25mL/hr',()=>approx(M.calculate({...inf,weightBased:false,rateUnit:'mg/hr',doseRate:'2',availableDose:'40',stockVolume:'5'}).primaryValue,.25));
 test('pump non-weight-based 5mcg/min at 1mg/mL = .3mL/hr',()=>approx(M.calculate({...inf,availableDose:'1',stockVolume:'1',weightBased:false,rateUnit:'mcg/min',doseRate:'5'}).primaryValue,.3));
-test('pump direct mL/hr',()=>approx(calc('infusion',{weightBased:false,infusionMethod:'ml',mlRate:'20',vtbi:'40'}).primaryValue,20));
-test('pump direct duration',()=>assert.equal(calc('infusion',{weightBased:false,infusionMethod:'ml',mlRate:'20',vtbi:'40'}).details.at(-1).value,'2 hr 00 min'));
+test('pump direct mL/hr',()=>approx(calc('infusion',{weightBased:false,infusionKind:'pump',infusionMethod:'ml',mlRate:'20',vtbi:'40'}).primaryValue,20));
+test('pump direct duration',()=>assert.equal(calc('infusion',{weightBased:false,infusionKind:'pump',infusionMethod:'ml',mlRate:'20',vtbi:'40'}).details.at(-1).value,'2 hr 00 min'));
 test('pump refuses weight-based direct mL/hr',()=>assert.throws(()=>M.calculate({...inf,infusionMethod:'ml',mlRate:'20'}),/weight-based infusion/));
 test('must answer weight-based question',()=>assert.throws(()=>calc('liquid',{...ordered,weightBased:null}),/weight-based/));
 test('must enter weight if weight-based liquid',()=>assert.throws(()=>calc('liquid',{...ordered,weightBased:true,patientWeight:''}),/positive number/));
@@ -50,6 +50,7 @@ test('nonmatching infusion rate unit rejected',()=>assert.throws(()=>M.calculate
 test('invalid mass unit rejected',()=>assert.throws(()=>calc('liquid',{...ordered,availableUnit:'IU'}),/mass unit/));
 test('invalid time unit rejected',()=>assert.throws(()=>calc('flow',{...fluid,timeUnit:'week'}),/time units/));
 test('too small for 1 drop per min rejected',()=>assert.throws(()=>calc('flow',{...fluid,volume:'1',timeValue:'500',timeUnit:'min',includeDrops:true,dropFactor:'1'}),/one drop/));
+test('drug label alias returns the same calculated dose',()=>approx(calc('drug', ordered).primaryValue,2.5));
 test('former tablet mode is unsupported',()=>assert.throws(()=>calc('tablet', {weightBased:false}),/Unknown/));
 test('unknown mode rejected',()=>assert.throws(()=>calc('other',{weightBased:false}),/Unknown/));
 console.log(`\n${passed} tests passed.`);

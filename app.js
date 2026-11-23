@@ -10,7 +10,7 @@
 
   const MODES = {
     drug: { title: 'Drug calculation', desc: 'Calculate mL from an entered dose and concentration such as 40 mg per 5 mL.', icon: '◒' },
-    infusion: { title: 'Infusion', desc: 'IV flow, drops per minute, or pump-style infusion workflow.', icon: '◈' }
+    infusion: { title: 'Infusion Calculation', desc: 'Pump-style infusion with dose-rate or mL/hr entry.', icon: '◈' }
   };
 
   function fresh() {
@@ -61,19 +61,12 @@
     if (state.mode === 'infusion') {
       const seq = ['weightBased'];
       if (state.weightBased === true) seq.push('weight');
-      seq.push('infusionKind');
-      if (state.infusionKind === 'flow') {
-        seq.push('volume', 'time', 'includeDrops');
-        if (state.includeDrops === true) seq.push('drop');
-        seq.push('review', 'result');
-      } else if (state.infusionKind === 'pump') {
-        if (state.weightBased === true) {
-          seq.push('strength', 'rateUnits', 'infusionDetails', 'review', 'result');
-        } else {
-          if (state.infusionMethod === 'ml') seq.push('infusionMethod', 'infusionDetails', 'review', 'result');
-          else if (state.infusionMethod === 'dose') seq.push('infusionMethod', 'strength', 'rateUnits', 'infusionDetails', 'review', 'result');
-          else seq.push('infusionMethod');
-        }
+      if (state.weightBased === true) {
+        seq.push('strength', 'rateUnits', 'infusionDetails', 'review', 'result');
+      } else {
+        if (state.infusionMethod === 'ml') seq.push('infusionMethod', 'infusionDetails', 'review', 'result');
+        else if (state.infusionMethod === 'dose') seq.push('infusionMethod', 'strength', 'rateUnits', 'infusionDetails', 'review', 'result');
+        else seq.push('infusionMethod');
       }
       return seq;
     }
@@ -92,6 +85,7 @@
   function begin(mode, example = false) {
     state = fresh();
     state.mode = mode;
+    if (mode === 'infusion') state.infusionKind = 'pump';
     if (example && mode === 'drug') Object.assign(state, { orderedDose:'20', orderedUnit:'mg', availableDose:'40', availableUnit:'mg', stockVolume:'5' });
     route('weightBased');
   }
@@ -120,7 +114,6 @@
     };
     for (const [field, label] of required[page] || []) M.number(state[field], label);
     if (page === 'weightBased' && state.weightBased === null) throw new Error('Choose Yes or No.');
-    if (page === 'infusionKind' && !state.infusionKind) throw new Error('Choose an infusion type.');
     if (page === 'infusionMethod' && !state.infusionMethod) throw new Error('Choose an infusion method.');
     if (page === 'rateUnits' && !state.rateUnit) throw new Error('Choose dose-rate units.');
     if (page === 'includeDrops' && state.includeDrops === null) throw new Error('Choose Yes or No.');
@@ -193,9 +186,6 @@
     if (p === 'strength') {
       return labelSmall('LABELED CONCENTRATION', 'Enter the two numbers as written, such as 40 mg per 5 mL.') + `<div class="ratio-input">${withUnit('availableDose','Medication amount','availableUnit',['mg','mcg','g','ng'])}<div class="per">per</div>${input('stockVolume','Solution volume','mL')}</div><div id="ratio-preview" class="conversion-preview"><span class="conversion-label">EQUIVALENT CONCENTRATION</span><strong>${escape(concentrationPreview())}</strong></div>` + keypad();
     }
-    if (p === 'infusionKind') {
-      return labelSmall('INFUSION TYPE', 'Choose the infusion calculator you want to use.') + `<div class="choices">${choice('IV flow / drops', 'infusionKind', 'flow', 'Calculate mL/hr and optional drops/min')}${choice('Pump-style infusion', 'infusionKind', 'pump', 'Dose-rate and VTBI workflow')}</div>`;
-    }
     if (p === 'volume') {
       return labelSmall(state.weightBased ? 'FLUID VOLUME PER KILOGRAM' : 'FLUID VOLUME', state.weightBased ? 'Enter the ordered mL/kg.' : 'Enter the total volume to infuse.') + input('volume', state.weightBased ? 'Volume per kg' : 'Fluid volume', state.weightBased ? 'mL/kg' : 'mL') + keypad();
     }
@@ -232,13 +222,7 @@
       row(state.weightBased ? 'Dose per kg' : 'Ordered dose', `${f(state.orderedDose)} ${f(state.orderedUnit)}${state.weightBased ? '/kg' : ''}`, 'ordered');
       row('Concentration', `${f(state.availableDose)} ${f(state.availableUnit)} per ${f(state.stockVolume)} mL`, 'strength');
     } else if (state.mode === 'infusion') {
-      row('Infusion type', state.infusionKind === 'flow' ? 'IV flow / drops' : 'Pump-style infusion', 'infusionKind');
-      if (state.infusionKind === 'flow') {
-        row('Fluid volume', `${f(state.volume)} ${state.weightBased ? 'mL/kg' : 'mL'}`, 'volume');
-        row('Time', `${f(state.timeValue)} ${f(state.timeUnit)}`, 'time');
-        row('Drops/min included', state.includeDrops ? 'Yes' : 'No', 'includeDrops');
-        if (state.includeDrops) row('Drop factor', `${f(state.dropFactor)} gtt/mL`, 'drop');
-      } else if (state.infusionKind === 'pump') {
+      if (state.infusionKind === 'pump') {
         if (!state.weightBased) row('Infusion method', state.infusionMethod === 'ml' ? 'mL/hr' : 'Dose calculation', 'infusionMethod');
         if (state.infusionMethod === 'dose') {
           row('Concentration', `${f(state.availableDose)} ${f(state.availableUnit)} per ${f(state.stockVolume)} mL`, 'strength');
@@ -265,7 +249,7 @@
     try { calc = M.calculate(state); }
     catch (e) { return `<p class="error-box">${escape(e.message)}</p><p>Go back and review the fields.</p>`; }
     const infusionVisual = state.mode === 'infusion';
-    const rows = calc.details.map((d) => `<div class="summary-row"><span>${escape(d.label)}</span><strong>${escape(d.value)}</strong></div>`).join('');
+    const rows = calc.details.filter((d) => d.label !== 'Equivalent concentration').map((d) => `<div class="summary-row"><span>${escape(d.label)}</span><strong>${escape(d.value)}</strong></div>`).join('');
     const equations = calc.math.map((m, i) => `<div class="math-row"><span>${String(i + 1).padStart(2, '0')} ${escape(m.label)}</span><p>${escape(m.value)}</p></div>`).join('');
     return `<div class="result-dark"><div class="result-top"><span><span class="mini-dot"></span> ARITHMETIC RESULT</span><span class="concept">DEMO ONLY</span></div><div class="result-body">${infusionVisual ? bagGraphic() : `<div class="answer-symbol" aria-hidden="true">ƒx</div>`}<div class="result-main"><p class="result-eyebrow">CALCULATED ${infusionVisual ? 'INFUSION RATE' : 'QUANTITY'}</p><div class="result-value"><strong>${escape(calc.display)}</strong><span>${escape(calc.primaryUnit)}</span></div><div class="summary-rows">${rows}</div></div></div><p class="result-note">${escape(calc.note)}</p></div><details class="math-detail"><summary><span class="fx-mark">ƒx</span><span><strong>See the math</strong><small>Show each arithmetic step and unit conversion</small></span><span class="summary-caret" aria-hidden="true">⌄</span></summary><div class="math-inner">${equations}</div></details>`;
   }
@@ -291,7 +275,7 @@
 
     if (home) nav.innerHTML = '';
     else if (isResult) nav.innerHTML = `<button class="secondary-btn" data-action="edit" type="button">Edit entries</button><button class="primary-btn" data-action="restart" type="button">New calculation</button>`;
-    else if (['weightBased', 'infusionKind', 'infusionMethod', 'rateUnits', 'includeDrops'].includes(p)) nav.innerHTML = `<button class="secondary-btn" data-action="back" type="button">← Back</button><span class="choose-hint">Select an option to continue</span>`;
+    else if (['weightBased', 'infusionMethod', 'rateUnits', 'includeDrops'].includes(p)) nav.innerHTML = `<button class="secondary-btn" data-action="back" type="button">← Back</button><span class="choose-hint">Select an option to continue</span>`;
     else nav.innerHTML = `<button class="secondary-btn" data-action="back" type="button">← Back</button><button class="primary-btn" data-action="next" type="button">${p === 'review' ? 'Calculate' : 'Continue'} <span aria-hidden="true">→</span></button>`;
     displayError();
   }
@@ -352,13 +336,8 @@
       if (k === 'weightBased') {
         state.weightBased = v === 'true';
         state.confirmedWeight = false;
-        state.infusionMethod = null;
+        state.infusionMethod = state.mode === 'infusion' && state.weightBased ? 'dose' : null;
         state.rateUnit = null;
-      } else if (k === 'infusionKind') {
-        state.infusionKind = v;
-        state.infusionMethod = null;
-        state.includeDrops = null;
-        if (v === 'pump' && state.weightBased === true) state.infusionMethod = 'dose';
       } else if (k === 'infusionMethod') {
         state.infusionMethod = v;
       } else if (k === 'includeDrops') {
